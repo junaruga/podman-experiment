@@ -1,0 +1,36 @@
+dist: xenial
+language: minimal
+before_install:
+  # https://github.com/containers/libpod/blob/master/install.md#ubuntu
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq -y software-properties-common uidmap
+  - sudo add-apt-repository -y ppa:projectatomic/ppa
+  - sudo apt-get update -qq
+  - sudo apt-get -qq -y install podman
+
+  # Show version and info.
+  - podman --version
+  - podman version
+  - podman info --debug
+  - apt-cache show podman
+  - dpkg-query -L podman
+
+  # Hack podman's configuration files.
+  # /etc/containers/registries.conf does not exist.
+  # https://clouding.io/kb/en/how-to-install-and-use-podman-on-ubuntu-18-04/
+  - ls -1 /etc/containers/registries.conf || true
+  - mkdir -p /etc/containers
+  - echo -e "[registries.search]\nregistries = ['docker.io']" | sudo tee /etc/containers/registries.conf
+matrix:
+  include:
+    - name: "1. podman by regular user"
+      script:
+        - podman run --rm -t fedora uname -m
+    - name: "2. podman-dockerfile by regular user"
+      install:
+        - podman build --rm -t my-fedora .
+      script:
+        - podman run --rm -t my-fedora uname -m
+    - name: "3. podman by root"
+      script:
+        - sudo podman run --rm -t fedora uname -m
