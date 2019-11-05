@@ -20,7 +20,7 @@ before_install:
   # https://clouding.io/kb/en/how-to-install-and-use-podman-on-ubuntu-18-04/
   - ls -1 /etc/containers/registries.conf || true
   - sudo mkdir -p /etc/containers
-  - echo -e "[registries.search]\nregistries = ['docker.io']" | sudo tee /etc/containers/registries.conf
+  - echo -e "[registries.search]\nregistries = ['docker.io', 'quay.io']" | sudo tee /etc/containers/registries.conf
 matrix:
   include:
     - name: "1. podman by regular user"
@@ -34,3 +34,9 @@ matrix:
     - name: "3. podman by root"
       script:
         - sudo podman run --rm -t fedora uname -m
+    - name: "4. quay.io"
+      script:
+        # Images on quay.io.
+        # https://quay.io/repository/junaruga/qemu-user-static
+        - podman pull junaruga/qemu-user-static:aarch64
+        - podman run junaruga/qemu-user-static:aarch64 /usr/bin/qemu-aarch64-static -help
